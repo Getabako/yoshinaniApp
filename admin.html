@@ -209,7 +209,10 @@
                         <td>${customerData.email}</td>
                         <td>${totalTickets}</td>
                         <td>${totalRemaining}回</td>
-                        <td><button class="btn btn-danger" onclick="deleteCustomer('${key}')">削除</button></td>
+                        <td>
+                            <button class="btn" style="font-size: 12px; padding: 8px 12px;" onclick="exportCustomerCSV('${key}')">CSV出力</button>
+                            <button class="btn btn-danger" style="font-size: 12px; padding: 8px 12px;" onclick="deleteCustomer('${key}')">削除</button>
+                        </td>
                     `;
                     customerTableBody.appendChild(row);
 
@@ -311,6 +314,29 @@
             }
 
             downloadCSV(csv, '回数券データ.csv');
+        }
+
+        // 個別顧客のCSVをエクスポート
+        function exportCustomerCSV(customerKey) {
+            const customerData = JSON.parse(localStorage.getItem(customerKey));
+            if (!customerData) {
+                alert('顧客データが見つかりません');
+                return;
+            }
+
+            let csv = '\uFEFF'; // BOM for Excel
+            csv += `名前:,${customerData.name}\n`;
+            csv += `メールアドレス:,${customerData.email}\n`;
+            csv += '\n';
+            csv += '購入履歴\n';
+            csv += 'メニュー,回数,購入日\n';
+
+            customerData.tickets.forEach(ticket => {
+                const purchaseDate = new Date(ticket.purchaseDate).toLocaleDateString('ja-JP');
+                csv += `${ticket.menu},${ticket.totalCount},${purchaseDate}\n`;
+            });
+
+            downloadCSV(csv, `${customerData.name}.csv`);
         }
 
         // CSVダウンロード

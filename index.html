@@ -301,7 +301,7 @@
 
         .card-info-layer {
             position: absolute;
-            top: 18%;
+            top: 30%;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
@@ -323,7 +323,7 @@
 
         @media (max-width: 768px) {
             .card-info-layer {
-                top: 15%;
+                top: 28%;
             }
 
             .card-customer-name {
@@ -674,10 +674,9 @@
                 return;
             }
 
-            if (confirm('精算しますか？\n回数券の残り回数が1回減ります。')) {
-                // スタンプを保存
-                saveStamps();
+            const stampCount = stamps.length;
 
+            if (confirm(`精算しますか？\n押されているスタンプ: ${stampCount}個\n回数券の残り回数が${stampCount}回減ります。`)) {
                 // 回数券の残り回数を減らす
                 const customerKey = `customer_${currentUserEmail}`;
                 const customerData = JSON.parse(localStorage.getItem(customerKey));
@@ -688,21 +687,24 @@
                 );
 
                 if (ticketIndex !== -1) {
-                    customerData.tickets[ticketIndex].remainingCount -= 1;
-                    customerData.tickets[ticketIndex].usedCount += 1;
+                    // スタンプ数分だけ減らす
+                    const newRemainingCount = Math.max(0, customerData.tickets[ticketIndex].remainingCount - stampCount);
+                    const actualDecrease = customerData.tickets[ticketIndex].remainingCount - newRemainingCount;
+
+                    customerData.tickets[ticketIndex].remainingCount = newRemainingCount;
+                    customerData.tickets[ticketIndex].usedCount += actualDecrease;
 
                     // 顧客データを保存
                     localStorage.setItem(customerKey, JSON.stringify(customerData));
 
+                    // スタンプを保存（残し続ける）
+                    saveStamps();
+
                     // 表示を更新
-                    currentTicket.remainingCount -= 1;
-                    currentTicket.usedCount += 1;
+                    currentTicket.remainingCount = newRemainingCount;
+                    currentTicket.usedCount += actualDecrease;
 
-                    // スタンプをクリア
-                    stamps = [];
-                    renderStamps();
-
-                    alert(`精算完了！\n残り回数: ${currentTicket.remainingCount}/${currentTicket.totalCount}回`);
+                    alert(`精算完了！\n使用回数: ${actualDecrease}回\n残り回数: ${currentTicket.remainingCount}/${currentTicket.totalCount}回`);
 
                     // 表示を更新
                     let ticketInfo = `${currentUser}さん | ${currentTicket.menu} | 残り${currentTicket.remainingCount}/${currentTicket.totalCount}回`;
@@ -722,12 +724,41 @@
                             updateCardBackImage();
                             document.getElementById('cardCustomerName').textContent = currentUser + ' 様';
                             document.getElementById('cardMenuName').textContent = currentTicket.menu;
+
+                            // 新しい回数券用のスタンプをリセット
+                            stamps = [];
+                            renderStamps();
+                            loadStamps();
                         } else {
+                            // すべての回数券が使い切られた場合、再購入ボタンを表示
                             document.getElementById('userInfo').textContent = currentUser + 'さん | 利用可能な回数券がありません';
+                            showRepurchaseButton();
                         }
                     }
                 }
             }
+        }
+
+        // 再購入ボタンを表示
+        function showRepurchaseButton() {
+            const existingButton = document.getElementById('repurchaseButton');
+            if (existingButton) return; // 既に表示されている場合は何もしない
+
+            const buttonContainer = document.createElement('div');
+            buttonContainer.id = 'repurchaseButton';
+            buttonContainer.style.textAlign = 'center';
+            buttonContainer.style.marginTop = '20px';
+
+            const button = document.createElement('button');
+            button.textContent = '回数券を再購入する';
+            button.className = 'btn';
+            button.style.maxWidth = '300px';
+            button.onclick = function() {
+                window.location.href = 'register.html';
+            };
+
+            buttonContainer.appendChild(button);
+            document.getElementById('cardContainer').appendChild(buttonContainer);
         }
 
         // Enterキーでログイン
