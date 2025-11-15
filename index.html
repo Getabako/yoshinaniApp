@@ -299,6 +299,42 @@
             transform: translate(-50%, -50%);
         }
 
+        .card-info-layer {
+            position: absolute;
+            top: 18%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .card-customer-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .card-menu-name {
+            font-size: 16px;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            .card-info-layer {
+                top: 15%;
+            }
+
+            .card-customer-name {
+                font-size: 16px;
+            }
+
+            .card-menu-name {
+                font-size: 13px;
+            }
+        }
+
         .instruction {
             text-align: center;
             color: white;
@@ -384,7 +420,11 @@
                     <img src="images/pc1.png" alt="カード表面" class="card-image">
                 </div>
                 <div class="card-face card-back">
-                    <img src="images/pc2.png" alt="カード裏面" class="card-image">
+                    <img src="images/pc3.png" alt="カード裏面" class="card-image" id="cardBackImage">
+                    <div class="card-info-layer" id="cardInfoLayer">
+                        <div class="card-customer-name" id="cardCustomerName"></div>
+                        <div class="card-menu-name" id="cardMenuName"></div>
+                    </div>
                     <div class="stamp-layer" id="stampLayer"></div>
                 </div>
             </div>
@@ -499,12 +539,39 @@
 
                     let ticketInfo = `${currentUser}さん | ${currentTicket.menu} | 残り${currentTicket.remainingCount}/${currentTicket.totalCount}回`;
                     document.getElementById('userInfo').textContent = ticketInfo;
+
+                    // 回数券の回数に応じた裏面画像を設定
+                    updateCardBackImage();
+
+                    // 裏面に顧客名とメニュー名を表示
+                    document.getElementById('cardCustomerName').textContent = currentUser + ' 様';
+                    document.getElementById('cardMenuName').textContent = currentTicket.menu;
                 } else {
                     document.getElementById('userInfo').textContent = currentUser + 'さん | 利用可能な回数券がありません';
                 }
             }
 
             loadStamps();
+        }
+
+        // 回数券の回数に応じた裏面画像を更新
+        function updateCardBackImage() {
+            if (!currentTicket) return;
+
+            const cardBackImage = document.getElementById('cardBackImage');
+            const totalCount = currentTicket.totalCount;
+
+            // 回数に応じて画像を切り替え
+            if (totalCount === 3) {
+                cardBackImage.src = 'images/pc3.png';
+            } else if (totalCount === 5) {
+                cardBackImage.src = 'images/pc5.png';
+            } else if (totalCount === 10) {
+                cardBackImage.src = 'images/pc10.png';
+            } else {
+                // デフォルトは3回用
+                cardBackImage.src = 'images/pc3.png';
+            }
         }
 
         // スタンプデータの読み込み
@@ -650,6 +717,11 @@
                             currentTicket = activeTickets[activeTickets.length - 1];
                             let ticketInfo = `${currentUser}さん | ${currentTicket.menu} | 残り${currentTicket.remainingCount}/${currentTicket.totalCount}回`;
                             document.getElementById('userInfo').textContent = ticketInfo;
+
+                            // 新しい回数券の画像と情報を更新
+                            updateCardBackImage();
+                            document.getElementById('cardCustomerName').textContent = currentUser + ' 様';
+                            document.getElementById('cardMenuName').textContent = currentTicket.menu;
                         } else {
                             document.getElementById('userInfo').textContent = currentUser + 'さん | 利用可能な回数券がありません';
                         }
