@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>癒家よしなに - 回数券購入</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .radio-option {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+
+        .radio-option label {
+            display: block;
+            padding: 15px 20px;
+            background: #f5f5f5;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: normal;
+        }
+
+        .radio-option input[type="radio"]:checked + label {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .radio-option label:hover {
+            border-color: #667eea;
+        }
+
+        .price-display {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .price-row.total {
+            border-top: 2px solid #ddd;
+            padding-top: 15px;
+            margin-top: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .radio-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .radio-option {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>癒家よしなに<br>回数券購入</h1>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="name">お名前 <span style="color: #e74c3c;">*</span></label>
+                <input type="text" id="name" placeholder="山田太郎" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">メールアドレス <span style="color: #e74c3c;">*</span></label>
+                <input type="email" id="email" placeholder="example@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="menu">メニュー <span style="color: #e74c3c;">*</span></label>
+                <select id="menu" required>
+                    <option value="">選択してください</option>
+                    <option value="本格足裏健康法" data-price="6330">本格足裏健康法</option>
+                    <option value="シナジードライヘッドスパ90or足裏角質ケア90" data-price="8700">シナジードライヘッドスパ90or足裏角質ケア90</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>回数 <span style="color: #e74c3c;">*</span></label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="count3" name="count" value="3" required>
+                        <label for="count3">3回</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="count5" name="count" value="5">
+                        <label for="count5">5回</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="count10" name="count" value="10">
+                        <label for="count10">10回</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="price-display" id="priceDisplay">
+                <div class="price-row">
+                    <span>選択メニュー:</span>
+                    <span id="selectedMenu">未選択</span>
+                </div>
+                <div class="price-row">
+                    <span>単価:</span>
+                    <span id="unitPrice">¥0</span>
+                </div>
+                <div class="price-row">
+                    <span>回数:</span>
+                    <span id="selectedCount">0回</span>
+                </div>
+                <div class="price-row total">
+                    <span>合計金額:</span>
+                    <span id="totalPrice">¥0</span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn">決済へ進む</button>
+            <div class="error-message" id="errorMessage"></div>
+        </form>
+    </div>
+
+    <script>
+        const menuSelect = document.getElementById('menu');
+        const countRadios = document.getElementsByName('count');
+        const selectedMenuDisplay = document.getElementById('selectedMenu');
+        const unitPriceDisplay = document.getElementById('unitPrice');
+        const selectedCountDisplay = document.getElementById('selectedCount');
+        const totalPriceDisplay = document.getElementById('totalPrice');
+
+        // 料金計算の更新
+        function updatePrice() {
+            const selectedOption = menuSelect.options[menuSelect.selectedIndex];
+            const price = selectedOption.dataset.price || 0;
+            const menuName = selectedOption.value || '未選択';
+
+            let count = 0;
+            for (const radio of countRadios) {
+                if (radio.checked) {
+                    count = parseInt(radio.value);
+                    break;
+                }
+            }
+
+            const total = price * count;
+
+            selectedMenuDisplay.textContent = menuName;
+            unitPriceDisplay.textContent = price > 0 ? `¥${parseInt(price).toLocaleString()}` : '¥0';
+            selectedCountDisplay.textContent = count > 0 ? `${count}回` : '0回';
+            totalPriceDisplay.textContent = total > 0 ? `¥${total.toLocaleString()}` : '¥0';
+        }
+
+        // メニュー変更時
+        menuSelect.addEventListener('change', updatePrice);
+
+        // 回数変更時
+        countRadios.forEach(radio => {
+            radio.addEventListener('change', updatePrice);
+        });
+
+        // フォーム送信
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const menu = menuSelect.value;
+            const menuPrice = menuSelect.options[menuSelect.selectedIndex].dataset.price;
+
+            let count = 0;
+            for (const radio of countRadios) {
+                if (radio.checked) {
+                    count = parseInt(radio.value);
+                    break;
+                }
+            }
+
+            if (!name || !email || !menu || !count) {
+                document.getElementById('errorMessage').textContent = 'すべての項目を入力してください';
+                return;
+            }
+
+            // 購入情報を保存
+            const purchaseData = {
+                name: name,
+                email: email,
+                menu: menu,
+                unitPrice: parseInt(menuPrice),
+                count: count,
+                totalPrice: parseInt(menuPrice) * count,
+                purchaseDate: new Date().toISOString()
+            };
+
+            // localStorageに一時保存
+            localStorage.setItem('pendingPurchase', JSON.stringify(purchaseData));
+
+            // サンプル決済ページへ遷移
+            window.location.href = 'payment-sample.html';
+        });
+    </script>
+</body>
+</html>

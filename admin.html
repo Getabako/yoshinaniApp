@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>癒家よしなに - 管理者ページ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .section h2 {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-card .label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>癒家よしなに - 管理者ページ</h1>
+
+        <div class="section">
+            <h2>統計情報</h2>
+            <div class="stats" id="statsContainer"></div>
+        </div>
+
+        <div class="section">
+            <h2>顧客一覧</h2>
+            <button class="btn" onclick="exportAllCustomersCSV()">全顧客データをCSVでダウンロード</button>
+            <button class="btn btn-danger" onclick="clearAllData()">全データを削除</button>
+            <table id="customerTable">
+                <thead>
+                    <tr>
+                        <th>名前</th>
+                        <th>メールアドレス</th>
+                        <th>回数券数</th>
+                        <th>残り回数</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="customerTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>回数券詳細</h2>
+            <button class="btn" onclick="exportTicketsCSV()">回数券データをCSVでダウンロード</button>
+            <table id="ticketTable">
+                <thead>
+                    <tr>
+                        <th>顧客名</th>
+                        <th>メニュー</th>
+                        <th>単価</th>
+                        <th>総回数</th>
+                        <th>残り回数</th>
+                        <th>使用回数</th>
+                        <th>購入日</th>
+                    </tr>
+                </thead>
+                <tbody id="ticketTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ページ読み込み時の処理
+        window.onload = function() {
+            loadCustomerData();
+            loadStatistics();
+        };
+
+        // 顧客データを読み込む
+        function loadCustomerData() {
+            const customerTableBody = document.getElementById('customerTableBody');
+            const ticketTableBody = document.getElementById('ticketTableBody');
+            customerTableBody.innerHTML = '';
+            ticketTableBody.innerHTML = '';
+
+            // localStorageから全顧客データを取得
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('customer_')) {
+                    const customerData = JSON.parse(localStorage.getItem(key));
+
+                    // 総回数券数と残り回数を計算
+                    let totalTickets = customerData.tickets.length;
+                    let totalRemaining = customerData.tickets.reduce((sum, t) => sum + t.remainingCount, 0);
+
+                    // 顧客テーブルに追加
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${customerData.name}</td>
+                        <td>${customerData.email}</td>
+                        <td>${totalTickets}</td>
+                        <td>${totalRemaining}回</td>
+                        <td><button class="btn btn-danger" onclick="deleteCustomer('${key}')">削除</button></td>
+                    `;
+                    customerTableBody.appendChild(row);
+
+                    // 回数券テーブルに追加
+                    customerData.tickets.forEach(ticket => {
+                        const ticketRow = document.createElement('tr');
+                        const purchaseDate = new Date(ticket.purchaseDate).toLocaleDateString('ja-JP');
+                        ticketRow.innerHTML = `
+                            <td>${customerData.name}</td>
+                            <td>${ticket.menu}</td>
+                            <td>¥${ticket.unitPrice.toLocaleString()}</td>
+                            <td>${ticket.totalCount}回</td>
+                            <td>${ticket.remainingCount}回</td>
+                            <td>${ticket.usedCount}回</td>
+                            <td>${purchaseDate}</td>
+                        `;
+                        ticketTableBody.appendChild(ticketRow);
+                    });
+                }
+            }
+        }
+
+        // 統計情報を読み込む
+        function loadStatistics() {
+            const statsContainer = document.getElementById('statsContainer');
+            statsContainer.innerHTML = '';
+
+            let totalCustomers = 0;
+            let totalTickets = 0;
+            let totalRevenue = 0;
+            let totalUsed = 0;
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('customer_')) {
+                    totalCustomers++;
+                    const customerData = JSON.parse(localStorage.getItem(key));
+
+                    customerData.tickets.forEach(ticket => {
+                        totalTickets++;
+                        totalRevenue += ticket.unitPrice * ticket.totalCount;
+                        totalUsed += ticket.usedCount;
+                    });
+                }
+            }
+
+            const stats = [
+                { number: totalCustomers, label: '総顧客数' },
+                { number: totalTickets, label: '発行回数券数' },
+                { number: totalUsed, label: '総利用回数' },
+                { number: `¥${totalRevenue.toLocaleString()}`, label: '総売上' }
+            ];
+
+            stats.forEach(stat => {
+                const card = document.createElement('div');
+                card.className = 'stat-card';
+                card.innerHTML = `
+                    <div class="number">${stat.number}</div>
+                    <div class="label">${stat.label}</div>
+                `;
+                statsContainer.appendChild(card);
+            });
+        }
+
+        // 全顧客データをCSVでエクスポート
+        function exportAllCustomersCSV() {
+            let csv = '\uFEFF'; // BOM for Excel
+            csv += '名前,メールアドレス,回数券数,残り回数\n';
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('customer_')) {
+                    const customerData = JSON.parse(localStorage.getItem(key));
+                    let totalTickets = customerData.tickets.length;
+                    let totalRemaining = customerData.tickets.reduce((sum, t) => sum + t.remainingCount, 0);
+
+                    csv += `${customerData.name},${customerData.email},${totalTickets},${totalRemaining}\n`;
+                }
+            }
+
+            downloadCSV(csv, '顧客データ.csv');
+        }
+
+        // 回数券データをCSVでエクスポート
+        function exportTicketsCSV() {
+            let csv = '\uFEFF'; // BOM for Excel
+            csv += '顧客名,メールアドレス,メニュー,単価,総回数,残り回数,使用回数,購入日\n';
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('customer_')) {
+                    const customerData = JSON.parse(localStorage.getItem(key));
+
+                    customerData.tickets.forEach(ticket => {
+                        const purchaseDate = new Date(ticket.purchaseDate).toLocaleDateString('ja-JP');
+                        csv += `${customerData.name},${customerData.email},${ticket.menu},${ticket.unitPrice},${ticket.totalCount},${ticket.remainingCount},${ticket.usedCount},${purchaseDate}\n`;
+                    });
+                }
+            }
+
+            downloadCSV(csv, '回数券データ.csv');
+        }
+
+        // CSVダウンロード
+        function downloadCSV(csv, filename) {
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 顧客を削除
+        function deleteCustomer(key) {
+            if (confirm('この顧客データを削除しますか？')) {
+                localStorage.removeItem(key);
+                loadCustomerData();
+                loadStatistics();
+                alert('削除しました');
+            }
+        }
+
+        // 全データを削除
+        function clearAllData() {
+            if (confirm('本当に全データを削除しますか？この操作は取り消せません。')) {
+                const keysToDelete = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('customer_') || key.startsWith('stamps_') ||
+                        key === 'currentUser' || key === 'currentUserEmail' ||
+                        key === 'pendingPurchase') {
+                        keysToDelete.push(key);
+                    }
+                }
+
+                keysToDelete.forEach(key => localStorage.removeItem(key));
+
+                loadCustomerData();
+                loadStatistics();
+                alert('全データを削除しました');
+            }
+        }
+    </script>
+</body>
+</html>

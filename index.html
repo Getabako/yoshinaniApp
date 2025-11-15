@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>癒家よしなに - デジタルポイントカード</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+                align-items: flex-start;
+                padding-top: 60px;
+            }
+        }
+
+        /* ログイン画面 */
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-container h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .logout-btn {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .logout-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* カード画面 */
+        .card-container {
+            display: none;
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .card-container.active {
+            display: block;
+        }
+
+        .button-group {
+            position: absolute;
+            top: -60px;
+            right: 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                position: static;
+                justify-content: center;
+                margin-bottom: 10px;
+                gap: 5px;
+            }
+        }
+
+        .settle-btn {
+            padding: 12px 24px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .settle-btn:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        .undo-btn {
+            padding: 12px 24px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .undo-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .settle-btn, .undo-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+
+        .card-wrapper {
+            perspective: 1000px;
+            width: 100%;
+            height: 600px;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .card-wrapper {
+                height: 400px;
+            }
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s ease-in-out;
+            cursor: pointer;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotateY(0deg);
+            }
+            50% {
+                transform: translateY(-10px) rotateY(0deg);
+            }
+        }
+
+        .card.flipping {
+            animation: cardFlip 0.8s ease-in-out forwards;
+        }
+
+        @keyframes cardFlip {
+            0% {
+                transform: translateY(0px) rotateY(0deg) scale(1);
+            }
+            25% {
+                transform: translateY(-20px) rotateY(45deg) scale(1.05);
+            }
+            50% {
+                transform: translateY(-30px) rotateY(90deg) scale(1.1);
+            }
+            75% {
+                transform: translateY(-20px) rotateY(135deg) scale(1.05);
+            }
+            100% {
+                transform: translateY(0px) rotateY(180deg) scale(1);
+            }
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+            animation: none;
+        }
+
+        .card.flipped:hover {
+            animation: none;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-front {
+            background: white;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: white;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+        }
+
+        .stamp-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: auto;
+        }
+
+        .stamp {
+            position: absolute;
+            width: 10%;
+            height: auto;
+            pointer-events: none;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+        }
+
+        .instruction {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 16px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .notice {
+            text-align: center;
+            color: #ffeb3b;
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .user-info {
+            text-align: center;
+            color: white;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: 8px;
+            font-size: 14px;
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .instruction {
+                font-size: 14px;
+                margin-top: 10px;
+            }
+
+            .notice {
+                font-size: 12px;
+                margin-top: 5px;
+            }
+
+            .user-info {
+                font-size: 12px;
+                padding: 8px 16px;
+                margin-top: 10px;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- ログイン画面 -->
+    <div class="login-container" id="loginContainer">
+        <h1>癒家よしなに<br>デジタル回数券</h1>
+        <div class="input-group">
+            <label for="name">お名前</label>
+            <input type="text" id="name" placeholder="山田太郎" required>
+        </div>
+        <div class="input-group">
+            <label for="email">メールアドレス</label>
+            <input type="email" id="email" placeholder="example@email.com" required>
+        </div>
+        <button class="btn" onclick="login()">ログイン</button>
+        <div class="error-message" id="errorMessage"></div>
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="register.html" style="color: #667eea; text-decoration: none; font-size: 14px;">初めての方はこちら（回数券購入）</a>
+        </div>
+    </div>
+
+    <!-- カード画面 -->
+    <div class="card-container" id="cardContainer">
+        <div class="button-group">
+            <button class="logout-btn" onclick="logout()">ログアウト</button>
+            <button class="undo-btn" onclick="undoStamp()">スタンプを消す</button>
+            <button class="settle-btn" onclick="settleStamps()">精算</button>
+        </div>
+
+        <div class="card-wrapper">
+            <div class="card" id="pointCard">
+                <div class="card-face card-front">
+                    <img src="images/pc1.png" alt="カード表面" class="card-image">
+                </div>
+                <div class="card-face card-back">
+                    <img src="images/pc2.png" alt="カード裏面" class="card-image">
+                    <div class="stamp-layer" id="stampLayer"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="instruction" id="instruction">
+            カードをクリックして裏返してください
+        </div>
+        <div class="notice" id="notice"></div>
+        <div style="text-align: center;">
+            <div class="user-info" id="userInfo"></div>
+        </div>
+    </div>
+
+    <script>
+        // グローバル変数
+        let currentUser = null;
+        let currentUserEmail = null;
+        let isFlipped = false;
+        let stamps = [];
+        let currentTicket = null;
+
+        // ページ読み込み時の処理
+        window.onload = function() {
+            checkLoginStatus();
+        };
+
+        // ログイン状態確認
+        function checkLoginStatus() {
+            const savedUser = localStorage.getItem('currentUser');
+            const savedEmail = localStorage.getItem('currentUserEmail');
+            if (savedUser && savedEmail) {
+                currentUser = savedUser;
+                currentUserEmail = savedEmail;
+                showCardScreen();
+            }
+        }
+
+        // ログイン処理
+        function login() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (!name || !email) {
+                errorMessage.textContent = 'お名前とメールアドレスを入力してください';
+                return;
+            }
+
+            // 顧客データを確認
+            const customerKey = `customer_${email}`;
+            const customerData = localStorage.getItem(customerKey);
+
+            if (!customerData) {
+                errorMessage.textContent = '登録されていません。先に回数券を購入してください。';
+                return;
+            }
+
+            const customer = JSON.parse(customerData);
+
+            // 名前の確認
+            if (customer.name !== name) {
+                errorMessage.textContent = '名前が一致しません';
+                return;
+            }
+
+            // ログイン成功
+            currentUser = name;
+            currentUserEmail = email;
+            localStorage.setItem('currentUser', currentUser);
+            localStorage.setItem('currentUserEmail', currentUserEmail);
+
+            errorMessage.textContent = '';
+            showCardScreen();
+        }
+
+        // ログアウト処理
+        function logout() {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('currentUserEmail');
+            currentUser = null;
+            currentUserEmail = null;
+            currentTicket = null;
+            stamps = [];
+            isFlipped = false;
+
+            document.getElementById('cardContainer').classList.remove('active');
+            document.getElementById('loginContainer').classList.remove('hidden');
+            document.getElementById('name').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('pointCard').classList.remove('flipped');
+        }
+
+        // カード画面表示
+        function showCardScreen() {
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('cardContainer').classList.add('active');
+
+            // 顧客データを読み込む
+            const customerKey = `customer_${currentUserEmail}`;
+            const customerData = localStorage.getItem(customerKey);
+
+            if (customerData) {
+                const customer = JSON.parse(customerData);
+
+                // 有効な回数券を探す
+                const activeTickets = customer.tickets.filter(t => t.remainingCount > 0);
+
+                if (activeTickets.length > 0) {
+                    // 最新の回数券を使用
+                    currentTicket = activeTickets[activeTickets.length - 1];
+
+                    let ticketInfo = `${currentUser}さん | ${currentTicket.menu} | 残り${currentTicket.remainingCount}/${currentTicket.totalCount}回`;
+                    document.getElementById('userInfo').textContent = ticketInfo;
+                } else {
+                    document.getElementById('userInfo').textContent = currentUser + 'さん | 利用可能な回数券がありません';
+                }
+            }
+
+            loadStamps();
+        }
+
+        // スタンプデータの読み込み
+        function loadStamps() {
+            if (!currentTicket) return;
+
+            const stampKey = `stamps_${currentUserEmail}_${currentTicket.purchaseDate}`;
+            const savedStamps = localStorage.getItem(stampKey);
+            if (savedStamps) {
+                stamps = JSON.parse(savedStamps);
+                renderStamps();
+            }
+        }
+
+        // スタンプデータの保存
+        function saveStamps() {
+            if (!currentTicket) return;
+
+            const stampKey = `stamps_${currentUserEmail}_${currentTicket.purchaseDate}`;
+            localStorage.setItem(stampKey, JSON.stringify(stamps));
+        }
+
+        // スタンプの描画
+        function renderStamps() {
+            const stampLayer = document.getElementById('stampLayer');
+            stampLayer.innerHTML = '';
+
+            stamps.forEach(stamp => {
+                const stampImg = document.createElement('img');
+                stampImg.src = 'images/check.png';
+                stampImg.className = 'stamp';
+                stampImg.style.left = stamp.x + '%';
+                stampImg.style.top = stamp.y + '%';
+                stampLayer.appendChild(stampImg);
+            });
+        }
+
+        // カードのクリック処理
+        document.addEventListener('DOMContentLoaded', function() {
+            const card = document.getElementById('pointCard');
+            const instruction = document.getElementById('instruction');
+
+            card.addEventListener('click', function(e) {
+                if (!isFlipped) {
+                    // 表から裏へ - アニメーション付き回転
+                    card.classList.add('flipping');
+
+                    // アニメーション終了後にflippedクラスを追加
+                    setTimeout(function() {
+                        card.classList.remove('flipping');
+                        card.classList.add('flipped');
+                        isFlipped = true;
+                    }, 800);
+
+                    instruction.textContent = 'タップしてスタンプを押してください';
+                    document.getElementById('notice').textContent = '※必ずスタッフの人がスタンプを押し、精算を押してください！';
+                } else {
+                    // 裏面でのスタンプ押印処理
+                    if (e.target.id === 'stampLayer' || e.target.classList.contains('card-back') || e.target.classList.contains('card-image')) {
+                        const rect = card.getBoundingClientRect();
+                        const x = ((e.clientX - rect.left) / rect.width) * 100;
+                        const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+                        stamps.push({ x: x, y: y });
+                        renderStamps();
+                        playStampSound();
+                    }
+                }
+            });
+        });
+
+        // スタンプ音を再生
+        function playStampSound() {
+            const audio = new Audio('se/パッ.mp3');
+            audio.play().catch(function(error) {
+                console.log('音声再生エラー:', error);
+            });
+        }
+
+        // スタンプを消す処理
+        function undoStamp() {
+            if (stamps.length === 0) {
+                alert('消すスタンプがありません');
+                return;
+            }
+
+            stamps.pop(); // 最後のスタンプを削除
+            renderStamps();
+        }
+
+        // 精算処理
+        function settleStamps() {
+            if (!currentTicket) {
+                alert('利用可能な回数券がありません');
+                return;
+            }
+
+            if (stamps.length === 0) {
+                alert('スタンプが押されていません');
+                return;
+            }
+
+            if (confirm('精算しますか？\n回数券の残り回数が1回減ります。')) {
+                // スタンプを保存
+                saveStamps();
+
+                // 回数券の残り回数を減らす
+                const customerKey = `customer_${currentUserEmail}`;
+                const customerData = JSON.parse(localStorage.getItem(customerKey));
+
+                // 該当する回数券を更新
+                const ticketIndex = customerData.tickets.findIndex(
+                    t => t.purchaseDate === currentTicket.purchaseDate
+                );
+
+                if (ticketIndex !== -1) {
+                    customerData.tickets[ticketIndex].remainingCount -= 1;
+                    customerData.tickets[ticketIndex].usedCount += 1;
+
+                    // 顧客データを保存
+                    localStorage.setItem(customerKey, JSON.stringify(customerData));
+
+                    // 表示を更新
+                    currentTicket.remainingCount -= 1;
+                    currentTicket.usedCount += 1;
+
+                    // スタンプをクリア
+                    stamps = [];
+                    renderStamps();
+
+                    alert(`精算完了！\n残り回数: ${currentTicket.remainingCount}/${currentTicket.totalCount}回`);
+
+                    // 表示を更新
+                    let ticketInfo = `${currentUser}さん | ${currentTicket.menu} | 残り${currentTicket.remainingCount}/${currentTicket.totalCount}回`;
+                    document.getElementById('userInfo').textContent = ticketInfo;
+
+                    // 回数券が使い切られた場合
+                    if (currentTicket.remainingCount === 0) {
+                        alert('回数券を使い切りました！\nありがとうございました。');
+                        // 他に有効な回数券があるか確認
+                        const activeTickets = customerData.tickets.filter(t => t.remainingCount > 0);
+                        if (activeTickets.length > 0) {
+                            currentTicket = activeTickets[activeTickets.length - 1];
+                            let ticketInfo = `${currentUser}さん | ${currentTicket.menu} | 残り${currentTicket.remainingCount}/${currentTicket.totalCount}回`;
+                            document.getElementById('userInfo').textContent = ticketInfo;
+                        } else {
+                            document.getElementById('userInfo').textContent = currentUser + 'さん | 利用可能な回数券がありません';
+                        }
+                    }
+                }
+            }
+        }
+
+        // Enterキーでログイン
+        document.addEventListener('DOMContentLoaded', function() {
+            const emailInput = document.getElementById('email');
+            const nameInput = document.getElementById('name');
+
+            if (emailInput) {
+                emailInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        login();
+                    }
+                });
+            }
+
+            if (nameInput) {
+                nameInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        login();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
