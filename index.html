@@ -301,29 +301,31 @@
 
         .card-info-layer {
             position: absolute;
-            top: 30%;
+            top: 20%;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
             pointer-events: none;
             z-index: 5;
+            width: 90%;
         }
 
         .card-customer-name {
             font-size: 20px;
             font-weight: bold;
             color: #333;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
 
         .card-menu-name {
-            font-size: 16px;
+            font-size: 15px;
             color: #555;
+            line-height: 1.4;
         }
 
         @media (max-width: 768px) {
             .card-info-layer {
-                top: 28%;
+                top: 18%;
             }
 
             .card-customer-name {
@@ -331,7 +333,7 @@
             }
 
             .card-menu-name {
-                font-size: 13px;
+                font-size: 12px;
             }
         }
 
@@ -545,7 +547,7 @@
 
                     // 裏面に顧客名とメニュー名を表示
                     document.getElementById('cardCustomerName').textContent = currentUser + ' 様';
-                    document.getElementById('cardMenuName').textContent = currentTicket.menu;
+                    updateCardMenuName(currentTicket.menu);
                 } else {
                     document.getElementById('userInfo').textContent = currentUser + 'さん | 利用可能な回数券がありません';
                 }
@@ -571,6 +573,18 @@
             } else {
                 // デフォルトは3回用
                 cardBackImage.src = 'images/pc3.png';
+            }
+        }
+
+        // メニュー名を改行して表示
+        function updateCardMenuName(menuName) {
+            const menuElement = document.getElementById('cardMenuName');
+
+            // 「スパ90」で改行、「スパ120」はそのまま
+            if (menuName.includes('スパ90')) {
+                menuElement.innerHTML = menuName.replace('スパ90', 'スパ90<br>');
+            } else {
+                menuElement.textContent = menuName;
             }
         }
 
@@ -723,7 +737,7 @@
                             // 新しい回数券の画像と情報を更新
                             updateCardBackImage();
                             document.getElementById('cardCustomerName').textContent = currentUser + ' 様';
-                            document.getElementById('cardMenuName').textContent = currentTicket.menu;
+                            updateCardMenuName(currentTicket.menu);
 
                             // 新しい回数券用のスタンプをリセット
                             stamps = [];
