@@ -301,7 +301,7 @@
 
         .card-info-layer {
             position: absolute;
-            top: 20%;
+            top: 28%;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
@@ -314,7 +314,7 @@
             font-size: 20px;
             font-weight: bold;
             color: #333;
-            margin-bottom: 8px;
+            margin-bottom: 25px;
         }
 
         .card-menu-name {
@@ -325,11 +325,12 @@
 
         @media (max-width: 768px) {
             .card-info-layer {
-                top: 18%;
+                top: 26%;
             }
 
             .card-customer-name {
                 font-size: 16px;
+                margin-bottom: 20px;
             }
 
             .card-menu-name {
@@ -539,8 +540,8 @@
                     // 最新の回数券を使用
                     currentTicket = activeTickets[activeTickets.length - 1];
 
-                    let ticketInfo = `${currentUser}さん | ${currentTicket.menu} | 残り${currentTicket.remainingCount}/${currentTicket.totalCount}回`;
-                    document.getElementById('userInfo').textContent = ticketInfo;
+                    let ticketInfo = `${currentUser}さん | ${currentTicket.menu}<br>残り${currentTicket.remainingCount}/${currentTicket.totalCount}回`;
+                    document.getElementById('userInfo').innerHTML = ticketInfo;
 
                     // 回数券の回数に応じた裏面画像を設定
                     updateCardBackImage();
@@ -721,8 +722,8 @@
                     alert(`精算完了！\n使用回数: ${actualDecrease}回\n残り回数: ${currentTicket.remainingCount}/${currentTicket.totalCount}回`);
 
                     // 表示を更新
-                    let ticketInfo = `${currentUser}さん | ${currentTicket.menu} | 残り${currentTicket.remainingCount}/${currentTicket.totalCount}回`;
-                    document.getElementById('userInfo').textContent = ticketInfo;
+                    let ticketInfo = `${currentUser}さん | ${currentTicket.menu}<br>残り${currentTicket.remainingCount}/${currentTicket.totalCount}回`;
+                    document.getElementById('userInfo').innerHTML = ticketInfo;
 
                     // 回数券が使い切られた場合
                     if (currentTicket.remainingCount === 0) {
@@ -731,8 +732,8 @@
                         const activeTickets = customerData.tickets.filter(t => t.remainingCount > 0);
                         if (activeTickets.length > 0) {
                             currentTicket = activeTickets[activeTickets.length - 1];
-                            let ticketInfo = `${currentUser}さん | ${currentTicket.menu} | 残り${currentTicket.remainingCount}/${currentTicket.totalCount}回`;
-                            document.getElementById('userInfo').textContent = ticketInfo;
+                            let ticketInfo = `${currentUser}さん | ${currentTicket.menu}<br>残り${currentTicket.remainingCount}/${currentTicket.totalCount}回`;
+                            document.getElementById('userInfo').innerHTML = ticketInfo;
 
                             // 新しい回数券の画像と情報を更新
                             updateCardBackImage();
